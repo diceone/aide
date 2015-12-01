@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+aide=`which aide`
+
+if [ -z "$aide" ] || [ ! -f "/etc/cron.weekly/aide" ]; then
+ if [ "$1" ]; then
+	email="$1"
+ else
+	email=asoalerts@gmail.com
+ fi
+
+ if [ ! -f "/etc/yum.repos.d/aso.repo" ]; then
+	wget -t3 -T3 http://repo.asmallorange.com/aso.repo -O /etc/yum.repos.d/aso.repo
+ fi
+ /usr/bin/yum install -y aide
+ wget http://129.121.132.46/downloads/aide.conf -O /etc/aide.conf
+ chmod 640 /etc/aide.conf
+
+ wget http://129.121.132.46/downloads/runtime_aide -O /etc/cron.daily/runtime_aide
+ chmod 755 /etc/cron.daily/runtime_aide
+
+ wget http://129.121.132.46/downloads/cron.aide -O /etc/cron.weekly/aide
+ chmod 755 /etc/cron.weekly/aide
+ ln -s /usr/bin/aide /usr/sbin/aide
+
+ if [ "$email" ]; then
+	sed -i "s/email=/email=$email/" /etc/cron.weekly/aide
+ fi
+ mkdir -p /var/lib/aide
+fi
